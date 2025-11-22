@@ -1,330 +1,1616 @@
 ﻿@model Cura.Web.Models.PatientDetailsVM
 @{
     var p = Model.Selected!;
-    ViewData["Title"] = "Patient";
+    ViewData["Title"] = "Patient Details";
 }
 
-<style>
-    :root {
-        --cura-green: #12B886; /* main Cura brand green */
-        --cura-green-600: #0FA678;
-        --cura-green-700: #0C8D65;
-        --cura-mint: #E9FBF4; /* light mint background */
-        --cura-ink: #0F172A; /* dark text */
-        --cura-muted: #6B7280; /* secondary text */
-        --surface: #FFFFFF;
-        --surface-2: #F8FAFC;
-        --border: #E5E7EB;
-        --shadow: 0 10px 24px rgba(18,184,134,.15);
-    }
-
-
-
-    /* page wrapper */
-    .cura-shell {
-        display: flex;
-        gap: 18px;
-        background: linear-gradient(180deg, var(--cura-mint), #fff 60%);
-        padding: 12px 12px 24px;
-        border-radius: 18px;
-    }
-
-    /* left sidebar */
-    .chat-sidebar {
-        width: 300px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        border-radius: 16px;
-        box-shadow: var(--shadow);
-        height: calc(100vh - 160px);
-        position: sticky;
-        top: 16px;
-        overflow: auto;
-    }
-
-    .sidebar-head {
-        padding: 16px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: linear-gradient(135deg, #ffffff 0%, #F4FFFA 100%);
-        border-top-left-radius: 16px;
-        border-top-right-radius: 16px;
-    }
-
-    .cura-badge {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        background: radial-gradient(60% 80% at 30% 20%, #38E1B0 0%, #12B886 60%, #0C8D65 100%);
-        box-shadow: 0 6px 12px rgba(18,184,134,.35);
-    }
-
-    .brand {
-        font-weight: 800;
-        letter-spacing: .3px;
-        color: var(--cura-green-700);
-    }
-
-    .patients-list {
-        padding: 10px;
-    }
-
-    .chat-item {
-        display: block;
-        padding: 10px 12px;
-        border-radius: 12px;
-        text-decoration: none;
-        color: var(--cura-ink);
-        border: 1px solid transparent;
-    }
-
-        .chat-item:hover {
-            background: #F6FFFB;
-            border-color: #D7F5EA;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] | Cura AI Clinical Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Add this to your existing CSS */
+        .recording-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .chat-item.active {
-            background: #E9FBF4;
-            border-color: #BFF3E3;
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #F44336;
+            transition: all 0.3s ease;
+        }
+        /* Your existing CSS styles here */
+        :root {
+            --cura-blue: #1E88E5;
+            --cura-blue-600: #1976D2;
+            --cura-blue-700: #1565C0;
+            --cura-light-blue: #E3F2FD;
+            --cura-ink: #0F172A;
+            --cura-muted: #6B7280;
+            --surface: #FFFFFF;
+            --surface-2: #F8FAFC;
+            --border: #E5E7EB;
+            --shadow: 0 10px 24px rgba(30, 136, 229, .15);
+            --ai-assistant: #7E57C2;
+            --human-assistant: #43A047;
         }
 
-    /* right pane */
-    .chat-main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        box-shadow: var(--shadow);
-    }
-
-    .card-header {
-        padding: 16px 18px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .card-body {
-        padding: 18px;
-    }
-
-    /* header info */
-    .pill {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: #F1FFF9;
-        color: var(--cura-green-700);
-        border: 1px solid #CFF6EA;
-        font-size: .8rem;
-        font-weight: 600;
-    }
-
-    /* input bar */
-    .ask-bar {
-        display: flex;
-        gap: 8px;
-    }
-
-    .ask-input {
-        flex: 1;
-        border: 1.5px solid var(--border);
-        border-radius: 12px;
-        padding: 12px 14px;
-        outline: none;
-        background: var(--surface-2);
-    }
-
-    .btn-cura {
-        background: linear-gradient(135deg, var(--cura-green), var(--cura-green-700));
-        color: #fff;
-        border: none;
-        padding: 12px 16px;
-        border-radius: 12px;
-        font-weight: 700;
-        box-shadow: 0 8px 16px rgba(18,184,134,.25);
-    }
-
-        .btn-cura:hover {
-            filter: brightness(.98);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
-    .btn-ghost {
-        border: 1px solid #CDEFE4;
-        color: var(--cura-green-700);
-        background: #F6FFFB;
-        padding: 8px 12px;
-        border-radius: 10px;
-        font-weight: 600;
-    }
-
-        .btn-ghost:hover {
-            background: #E9FBF4;
+        body {
+            background: linear-gradient(135deg, var(--cura-light-blue) 0%, #fff 60%);
+            color: var(--cura-ink);
+            min-height: 100vh;
+            padding: 20px;
         }
 
-    /* markdown / AI output */
-    #aiOut {
-        min-height: 140px;
-    }
-
-    .markdown-body {
-        line-height: 1.6;
-        color: var(--cura-ink);
-    }
-
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-            margin: .6rem 0 .3rem;
+        .cura-shell {
+            display: flex;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
-        .markdown-body p {
-            margin: .3rem 0 .6rem;
+        .chat-sidebar {
+            width: 320px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            height: calc(100vh - 40px);
+            position: sticky;
+            top: 20px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
         }
 
-        .markdown-body ul {
-            margin: .4rem 0 .6rem 1.1rem;
+        .sidebar-head {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #E8F4FE 100%);
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
         }
 
-        .markdown-body strong {
-            color: #0C815F;
+        .cura-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: radial-gradient(60% 80% at 30% 20%, #64B5F6 0%, #1E88E5 60%, #1565C0 100%);
+            box-shadow: 0 6px 12px rgba(30, 136, 229, .35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
         }
 
-        .markdown-body code, .markdown-body pre {
-            background: #F6FFFB;
-            border: 1px dashed #CDEFE4;
-            padding: 3px 6px;
+        .brand {
+            font-weight: 800;
+            letter-spacing: .3px;
+            color: var(--cura-blue-700);
+            font-size: 1.4rem;
+        }
+
+        .patients-list {
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: block;
+            padding: 12px 15px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--cura-ink);
+            border: 1px solid transparent;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+            .chat-item:hover {
+                background: #EDF7FF;
+                border-color: #BBDEFB;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(30, 136, 229, .1);
+            }
+
+            .chat-item.active {
+                background: #E3F2FD;
+                border-color: #90CAF9;
+            }
+
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #E8F4FE;
+            color: var(--cura-blue-700);
+            border: 1px solid #BBDEFB;
+            font-size: .8rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .conversation-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .conversation-body {
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 16px;
+            background: var(--surface-2);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .message-doctor {
+            background: #E8F5E9;
+            border: 1px solid #C8E6C9;
+        }
+
+        .message-patient {
+            background: #FFF3E0;
+            border: 1px solid #FFE0B2;
+        }
+
+        .message-ai {
+            background: #F3E5F5;
+            border: 1px solid #E1BEE7;
+        }
+
+        .message-user {
+            background: #E3F2FD;
+            border: 1px solid #BBDEFB;
+        }
+
+        .message-avatar-doctor {
+            background: var(--human-assistant);
+        }
+
+        .message-avatar-patient {
+            background: #FF9800;
+        }
+
+        .message-avatar-ai {
+            background: var(--ai-assistant);
+        }
+
+        .message-avatar-user {
+            background: var(--cura-blue);
+        }
+
+        .message-meta {
+            font-size: 0.75rem;
+            color: var(--cura-muted);
+            margin-top: 4px;
+        }
+
+        .conversation-footer {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ai-settings {
+            position: relative;
+        }
+
+        .ai-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 300px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 16px;
+            z-index: 100;
+            display: none;
+        }
+
+            .ai-dropdown.show {
+                display: block;
+            }
+
+        .dropdown-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--cura-blue-700);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dropdown-section {
+            margin-bottom: 16px;
+        }
+
+        .dropdown-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--cura-ink);
+        }
+
+        .dropdown-select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            font-size: 0.9rem;
+        }
+
+        .dropdown-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+            .dropdown-checkbox input {
+                margin: 0;
+            }
+
+        .ask-bar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ask-input {
+            flex: 1;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            outline: none;
+            background: var(--surface-2);
+            font-size: 1rem;
+        }
+
+        .btn-cura {
+            background: linear-gradient(135deg, var(--cura-blue), var(--cura-blue-700));
+            color: #fff;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            box-shadow: 0 8px 16px rgba(30, 136, 229, .25);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+            .btn-cura:hover {
+                filter: brightness(.95);
+                transform: translateY(-2px);
+                box-shadow: 0 12px 20px rgba(30, 136, 229, .3);
+            }
+
+        .btn-ghost {
+            border: 1px solid #BBDEFB;
+            color: var(--cura-blue-700);
+            background: #E8F4FE;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .btn-ghost:hover {
+                background: #D4E7FB;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(30, 136, 229, .15);
+            }
+
+        #aiOut {
+            min-height: 200px;
+        }
+
+        .markdown-body {
+            line-height: 1.6;
+            color: var(--cura-ink);
+        }
+
+            .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+                margin: .6rem 0 .3rem;
+            }
+
+            .markdown-body p {
+                margin: .3rem 0 .6rem;
+            }
+
+            .markdown-body ul {
+                margin: .4rem 0 .6rem 1.1rem;
+            }
+
+            .markdown-body strong {
+                color: var(--cura-blue-700);
+            }
+
+            .markdown-body code, .markdown-body pre {
+                background: #E8F4FE;
+                border: 1px dashed #BBDEFB;
+                padding: 3px 6px;
+                border-radius: 8px;
+            }
+
+        .assistant-panel {
+            display: flex;
+            gap: 20px;
+        }
+
+        .assistant-card {
+            flex: 1;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .assistant-ai {
+            background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
+            border: 1px solid #CE93D8;
+        }
+
+        .assistant-human {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border: 1px solid #A5D6A7;
+        }
+
+        .assistant-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .assistant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .assistant-ai .assistant-avatar {
+            background: var(--ai-assistant);
+        }
+
+        .assistant-human .assistant-avatar {
+            background: var(--human-assistant);
+        }
+
+        .assistant-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .assistant-status {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.7);
+        }
+
+            .assistant-status.active {
+                background: #4CAF50;
+                color: white;
+            }
+
+            .assistant-status.inactive {
+                background: #9E9E9E;
+                color: white;
+            }
+
+        .assistant-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .muted {
+            color: var(--cura-muted);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        .mt-3 {
+            margin-top: 16px;
+        }
+
+        .mb-2 {
+            margin-bottom: 12px;
+        }
+
+        .mb-3 {
+            margin-bottom: 16px;
+        }
+
+        .coming-soon {
+            background: #FFF9C4;
+            border: 1px dashed #FFD54F;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.85rem;
+            color: #5D4037;
+            text-align: center;
+        }
+
+        .conversation-history {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            background: var(--surface-2);
+        }
+
+        .history-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
             border-radius: 8px;
         }
 
-    /* tiny helper */
-    .muted {
-        color: var(--cura-muted);
-    }
-</style>
-
-<div class="cura-shell">
-    <!-- LEFT: patients list -->
-    <aside class="chat-sidebar">
-        <div class="sidebar-head">
-            <div class="cura-badge"></div>
-            <div>
-                <div class="brand">Cura</div>
-                <div class="muted" style="font-size:.85rem">AI Clinical Assistant</div>
-            </div>
-        </div>
-        <div class="patients-list">
-            @foreach (var item in Model.Patients)
-            {
-                var active = item.Id == p.Id ? "active" : "";
-                <a class="chat-item @active" href="@Url.Action("Details","Patients", new { id = item.Id })">
-                    <div class="fw-semibold">@item.FullName</div>
-@*                     <div class="muted small">@item.Id</div>
- *@                </a>
+            .history-item:hover {
+                background: #EDF7FF;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             }
-            <a class="btn-ghost w-100" href="@Url.Action("Index","Patients")">All Patients</a>
-        </div>
-    </aside>
 
-    <!-- RIGHT: selected patient + Ask AI -->
-    <main class="chat-main">
-        <section class="card">
-            <div class="card-header">
-                <h3 class="m-0">@p.FullName @* <small class="muted">(@p.Id)</small> *@
-                    </h3>
+            .history-item:last-child {
+                border-bottom: none;
+            }
+
+        .history-question {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .history-answer {
+            font-size: 0.9rem;
+            color: var(--cura-muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Modal styles */
+        #cura-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+        }
+
+            #cura-modal-overlay.show {
+                display: flex !important;
+            }
+
+        #cura-modal-dialog {
+            background: #fff;
+            border-radius: 16px;
+            width: min(1000px,92vw);
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 24px 64px rgba(0,0,0,.35);
+            border: 1px solid #e5e7eb;
+        }
+
+        #cura-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f6faff;
+        }
+
+        #cura-modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        #cura-modal-body {
+            padding: 18px;
+        }
+
+        .data-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+            .data-card h4 {
+                color: var(--cura-blue-700);
+                margin-bottom: 10px;
+                border-bottom: 1px solid var(--border);
+                padding-bottom: 8px;
+            }
+
+        .data-list {
+            list-style: none;
+            padding: 0;
+        }
+
+            .data-list li {
+                padding: 8px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+                .data-list li:last-child {
+                    border-bottom: none;
+                }
+
+        .observation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .observation-value {
+            font-weight: 600;
+            color: var(--cura-blue-700);
+        }
+
+        .observation-date {
+            font-size: 0.8rem;
+            color: var(--cura-muted);
+        }
+
+        .btn-diagnostic {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+        }
+
+            .btn-diagnostic:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(33, 150, 243, 0.3);
+                filter: brightness(1.05);
+            }
+
+        .btn-suggestion {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 8px rgba(156, 39, 176, 0.2);
+        }
+
+            .btn-suggestion:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(156, 39, 176, 0.3);
+                filter: brightness(1.05);
+            }
+
+        .btn-action {
+            background: linear-gradient(135deg, #43A047, #2E7D32);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 8px rgba(67, 160, 71, 0.2);
+        }
+
+            .btn-action:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(67, 160, 71, 0.3);
+                filter: brightness(1.05);
+            }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #F44336, #D32F2F);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 8px rgba(244, 67, 54, 0.2);
+        }
+
+            .btn-warning:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(244, 67, 54, 0.3);
+                filter: brightness(1.05);
+            }
+        /* Add to your CSS section */
+        .diagnostic-summary {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #90CAF9;
+        }
+
+            .diagnostic-summary h3 {
+                color: var(--cura-blue-700);
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+            .summary-item h5 {
+                color: var(--cura-blue-700);
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+            }
+
+            .summary-item p {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--cura-blue);
+            }
+
+        /* Recording indicator styles */
+        .recording-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: pulse 1.5s infinite;
+        }
+
+     
+
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #F44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="cura-shell">
+        <!-- LEFT: patients list -->
+        <aside class="chat-sidebar">
+            <div class="sidebar-head">
+                <div class="cura-badge">
+                    <i class="fas fa-stethoscope"></i>
+                </div>
+                <div>
+                    <div class="brand">Cura</div>
+                    <div class="muted" style="font-size:.85rem">AI Clinical Assistant</div>
+                </div>
             </div>
-            <div class="card-body">
-                <p class="muted">
-                    <span class="pill">Gender: @p.Gender</span>
-                    <span class="pill">DOB: @p.BirthDate</span>
-                </p>
+            <div class="patients-list">
+                <div class="muted mb-2">PATIENTS</div>
+                @foreach (var patient in Model.Patients)
+                {
+                    var isActive = patient.Id == p.Id;
+                    <a class="chat-item @(isActive ? "active" : "")" href="@Url.Action("Details", "Patients", new { id = patient.Id })">
+                        <div class="fw-semibold">@patient.FullName</div>
+                        <div class="muted small">DOB: @patient.BirthDate.ToString("yyyy-MM-dd")</div>
+                    </a>
+                }
+            </div>
+            <div class="sidebar-footer">
+                <a class="btn-ghost w-100 text-center" href="@Url.Action("Index", "Patients")">
+                    <i class="fas fa-plus"></i> All Patients
+                </a>
+            </div>
+        </aside>
 
-                <div class="row">
-                    <div class="col-lg-6">
-                        <h5>Problems</h5>
-                        <ul>
-                            @foreach (var c in p.Conditions)
-                            {
-                                <li>@c.Name</li>
-                            }
-                        </ul>
+        <!-- RIGHT: selected patient + AI features -->
+        <main class="chat-main">
+            <!-- Patient Header -->
+            <section class="card">
+                <div class="card-header">
+                    <h2 class="m-0">
+                        @p.FullName
+                        <button class="btn-diagnostic" id="viewDiagnosticBtn" type="button">
+                            <i class="fas fa-chart-line"></i> View Patient Diagnostic
+                        </button>
+                    </h2>
+                    <div class="ai-settings">
+                        <button class="btn-ghost" id="aiSettingsBtn">
+                            <i class="fas fa-cog"></i> AI Settings
+                        </button>
+                        <div class="ai-dropdown" id="aiDropdown">
+                            <div class="dropdown-header">
+                                <i class="fas fa-robot"></i> AI Assistant Configuration
+                            </div>
+                            <div class="dropdown-section">
+                                <label class="dropdown-label">Assistant Mode</label>
+                                <select class="dropdown-select" id="assistantMode">
+                                    <option>Standard Clinical Assistant</option>
+                                    <option>Specialist Consultant</option>
+                                    <option>Diagnostic Support</option>
+                                    <option>Treatment Planning</option>
+                                </select>
+                            </div>
+                            <div class="dropdown-section">
+                                <label class="dropdown-label">Conversation Analysis</label>
+                                <div class="dropdown-checkbox">
+                                    <input type="checkbox" id="realTimeAnalysis" checked>
+                                    <label for="realTimeAnalysis">Real-time conversation analysis</label>
+                                </div>
+                                <div class="dropdown-checkbox">
+                                    <input type="checkbox" id="sentimentAnalysis" checked>
+                                    <label for="sentimentAnalysis">Patient sentiment tracking</label>
+                                </div>
+                                <div class="dropdown-checkbox">
+                                    <input type="checkbox" id="clinicalInsights">
+                                    <label for="clinicalInsights">Clinical insights during conversation</label>
+                                </div>
+                            </div>
+                            <div class="dropdown-section">
+                                <label class="dropdown-label">Response Style</label>
+                                <select class="dropdown-select" id="responseStyle">
+                                    <option>Concise & Clinical</option>
+                                    <option>Detailed & Explanatory</option>
+                                    <option>Patient-Focused</option>
+                                </select>
+                            </div>
+                            <button class="btn-cura w-100 mt-3" id="saveSettings">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Patient Basic Info -->
+                    <p class="mb-3">
+                        <span class="pill">Gender: @p.Gender</span>
+                        <span class="pill">DOB: @p.BirthDate.ToString("yyyy-MM-dd")</span>
+                        <span class="pill">Age: @(DateTime.Now.Year - p.BirthDate.Year)</span>
+                        <span class="pill">ID: @p.Id.Substring(0, 8)...</span>
+                    </p>
 
-                        <h5>Medications</h5>
-                        <ul>
-                            @foreach (var m in p.Medications)
-                            {
-                                <li>@m.Name</li>
-                            }
-                        </ul>
-
-                        <h5>Recent Observations</h5>
-                        <ul>
-                            @foreach (var o in p.Observations)
-                            {
-                                <li><strong>@o.Code</strong>: @o.Value (@o.Date:yyyy-MM-dd) [@o.RefId]</li>
-                            }
-                        </ul>
-
-                        <h5>Last Note</h5>
-                        <p>@p.LastNote</p>
+                    <!-- Quick Summary -->
+                    <div class="diagnostic-summary">
+                        <h3><i class="fas fa-heartbeat"></i> Quick Diagnostic Summary</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <h5>Active Conditions</h5>
+                                <p>@p.Conditions.Count</p>
+                            </div>
+                            <div class="summary-item">
+                                <h5>Current Medications</h5>
+                                <p>@p.Medications.Count</p>
+                            </div>
+                            <div class="summary-item">
+                                <h5>Recent Observations</h5>
+                                <p>@p.Observations.Count</p>
+                            </div>
+                            <div class="summary-item">
+                                <h5>Last Updated</h5>
+                                <p>@DateTime.Now.ToString("MMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="assistant-panel mb-3">
+                        <div class="assistant-card assistant-ai">
+                            <div class="assistant-header">
+                                <div class="assistant-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div>
+                                    <div class="assistant-name">Cura AI Assistant</div>
+                                    <span class="assistant-status active">Active</span>
+                                </div>
+                            </div>
+                            <div class="assistant-feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-microphone"></i>
+                                </div>
+                                <span>Listening to conversation</span>
+                            </div>
+                            <div class="assistant-feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <span>Providing real-time insights</span>
+                            </div>
+                            <div class="assistant-feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <span>Clinical decision support</span>
+                            </div>
+                            <button class="btn-action w-100" id="toggleRecording">
+                                <i class="fas fa-microphone"></i> Start Recording
+                            </button>
+                        </div>
+                        <div class="assistant-card assistant-human">
+                            <div class="assistant-header">
+                                <div class="assistant-avatar">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <div>
+                                    <div class="assistant-name">Dr. Emily Wilson</div>
+                                    <span class="assistant-status active">Available</span>
+                                </div>
+                            </div>
+                            <div class="assistant-feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                                <span>Second opinion available</span>
+                            </div>
+                            <div class="assistant-feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <span>Reviewing patient history</span>
+                            </div>
+                            <div class="assistant-feature">
+                                <div class="feature-icon">
+                                    <i class="fas fa-file-medical"></i>
+                                </div>
+                                <span>Preparing clinical notes</span>
+                            </div>
+                            <button class="btn-cura w-100">
+                                <i class="fas fa-phone-alt"></i> Consult with Dr. Wilson
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="col-lg-6">
-                        <h4 class="mb-2">Ask AI</h4>
-                        <div class="ask-bar mb-2">
-                            <input id="q" class="ask-input" placeholder="Ask about this patient (e.g., summarize chart, draft SOAP…)" />
-                            <button id="askBtn" class="btn-cura">Ask</button>
-                        </div>
-                        <div class="mb-2" style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <button class="btn-ghost" onclick="prefill('Summarize the chart and draft a SOAP note with references.')">Suggest SOAP</button>
-                            <button class="btn-ghost" onclick="prefill('List abnormal labs with references and follow-up suggestions.')">Abnormal Labs</button>
+                    <div class="coming-soon">
+                        <i class="fas fa-tools"></i> AI Co-pilot Mode: Real-time clinical suggestions during patient visits (Coming Soon)
+                    </div>
+                </div>
+            </section>
+
+            <!-- Conversation Panel -->
+            <section class="card">
+                <div class="card-header">
+                    <h3 class="m-0">
+                        <i class="fas fa-comments"></i> Doctor-Patient Conversation
+                        <span class="muted" style="font-size: 0.9rem; font-weight: normal;" id="recordingStatus">(AI Listening Active)</span>
+                    </h3>
+                    <div id="recordingIndicator" class="recording-indicator" style="display: none;">
+                        <div class="recording-dot"></div>
+                        <span class="pill" style="background: #FFEBEE; color: #C62828;">
+                            <i class="fas fa-circle"></i> Recording
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="conversation-panel">
+                        <div class="conversation-body" id="conversationBody">
+                            <!-- Conversation messages will be added here dynamically -->
                         </div>
 
-                        <div id="aiOut" class="card" style="border-style:dashed;">
-                            <div class="card-body">
-                                <div class="markdown-body" id="aiMd">Ask Cura to get started.</div>
+                        <div class="conversation-footer">
+                            <button class="btn-ghost" id="pauseRecording">
+                                <i class="fas fa-pause"></i> Pause Listening
+                            </button>
+                            <button class="btn-warning" id="clearConversation">
+                                <i class="fas fa-trash"></i> Clear Conversation
+                            </button>
+                            <button class="btn-suggestion" id="getAiSuggestions">
+                                <i class="fas fa-bolt"></i> Get AI Suggestions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Assistant Panel -->
+            <section class="card">
+                <div class="card-header">
+                    <h3 class="m-0">
+                        <i class="fas fa-robot"></i> Cura AI Assistant
+                    </h3>
+                    <div class="muted">
+                        <i class="fas fa-circle" style="color: #4CAF50; font-size: 0.7rem;"></i> Online
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="ask-bar mb-3">
+                        <input id="q" class="ask-input" placeholder="Ask about this patient (e.g., summarize chart, draft SOAP, analyze symptoms…)">
+                        <button id="askBtn" class="btn-cura">
+                            <i class="fas fa-paper-plane"></i> Ask
+                        </button>
+                    </div>
+
+                    <div class="mb-3" style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn-suggestion" onclick="prefill('Summarize the chart and draft a SOAP note with references.')">
+                            <i class="fas fa-file-medical"></i> Suggest SOAP
+                        </button>
+                        <button class="btn-suggestion" onclick="prefill('List abnormal labs with references and follow-up suggestions.')">
+                            <i class="fas fa-vial"></i> Abnormal Labs
+                        </button>
+                        <button class="btn-suggestion" onclick="prefill('Based on current conversation, suggest next diagnostic steps.')">
+                            <i class="fas fa-stethoscope"></i> Diagnostic Steps
+                        </button>
+                        <button class="btn-suggestion" onclick="prefill('Generate patient education materials for hypertension.')">
+                            <i class="fas fa-book-medical"></i> Patient Education
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <h4>Conversation History</h4>
+                        <div class="conversation-history" id="conversationHistory">
+                            <!-- Conversation history will be populated here -->
+                        </div>
+                    </div>
+
+                    <div id="aiOut" class="card" style="border-style: dashed; background: #F8F9FA;">
+                        <div class="card-body">
+                            <div class="markdown-body" id="aiMd">
+                                <div class="text-center muted">
+                                    <i class="fas fa-robot" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                    <p>Ask Cura AI Assistant about this patient to get started.</p>
+                                    <p>The AI is currently listening to the conversation and will provide relevant insights.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Patient Diagnostic Modal -->
+    <div id="cura-modal-overlay" aria-hidden="true">
+        <div id="cura-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cura-modal-title">
+            <div id="cura-modal-head">
+                <h3 id="cura-modal-title" style="margin:0;font-weight:700;">
+                    <i class="fas fa-chart-line"></i> Diagnostic Summary - @p.FullName
+                </h3>
+                <button id="cura-modal-close" type="button" aria-label="Close">&times;</button>
             </div>
-        </section>
-    </main>
-</div>
+            <div id="cura-modal-body">
+                <!-- Minimal, safe content. Replace later as needed. -->
+                <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+                    <div class="data-card">
+                        <h4>Medical Conditions</h4>
+                        <ul class="data-list">
+                            @foreach (var c in p.Conditions.Take(8))
+                            {
+                                <li>@c.Name</li>
+                            }
+                            @if (!p.Conditions.Any())
+                            {
+                                <li class="muted">No conditions recorded</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="data-card">
+                        <h4>Medications</h4>
+                        <ul class="data-list">
+                            @foreach (var m in p.Medications.Take(8))
+                            {
+                                <li>@m.Name</li>
+                            }
+                            @if (!p.Medications.Any())
+                            {
+                                <li class="muted">No medications recorded</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="data-card">
+                        <h4>Recent Observations</h4>
+                        <ul class="data-list">
+                            @foreach (var o in p.Observations.Take(8))
+                            {
+                                <li class="observation-item">
+                                    <span><strong>@o.Code</strong> <span class="observation-date">(@o.Date.ToString("yyyy-MM-dd"))</span></span>
+                                    <span class="observation-value">@o.Value</span>
+                                </li>
+                            }
+                            @if (!p.Observations.Any())
+                            {
+                                <li class="muted">No observations recorded</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="data-card">
+                        <h4>Clinical Notes</h4>
+                        <div style="max-height:200px;overflow:auto;">@(string.IsNullOrEmpty(p.LastNote) ? "No clinical notes available" : p.LastNote)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-@section Scripts {
     <script>
-        const pid = "@p.Id";
-        function prefill(t){ document.getElementById('q').value = t; }
+        // SIMPLE WORKING SOLUTION - ALL BUTTONS WORKING
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded - initializing buttons');
 
-        const askBtn = document.getElementById('askBtn');
-        const out = document.getElementById('aiMd');
+            // Initialize conversation
+            initializeConversation();
 
-        askBtn.addEventListener('click', async () => {
-          const question = document.getElementById('q').value || 'Summarize the chart and draft a SOAP note with references.';
-          const spinner = "🟢 Thinking…";
-          out.innerHTML = spinner;
+            // 1. AI SETTINGS DROPDOWN - WORKING
+            const aiSettingsBtn = document.getElementById('aiSettingsBtn');
+            const aiDropdown = document.getElementById('aiDropdown');
 
-          try {
-            const resp = await fetch('@Url.Action("Ask", "Patients")', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams({ id: pid, question })
-            });
-            const data = await resp.json();
-            if (data.ok) {
-              // server returns Markdown rendered to HTML (Markdig) → drop it in
-              out.innerHTML = data.answer;
-            } else {
-              out.innerHTML = "<span class='text-danger'>AI error: " + data.error + "</span>";
+            if (aiSettingsBtn && aiDropdown) {
+                aiSettingsBtn.addEventListener('click', function(e) {
+                    console.log('AI Settings clicked');
+                    e.stopPropagation();
+                    aiDropdown.classList.toggle('show');
+                });
+
+                // Close when clicking outside
+                document.addEventListener('click', function() {
+                    aiDropdown.classList.remove('show');
+                });
+
+                // Save settings
+                document.getElementById('saveSettings').addEventListener('click', function() {
+                    aiDropdown.classList.remove('show');
+                    alert('AI Settings Saved!');
+                });
             }
-          } catch(e) {
-            out.innerHTML = "<span class='text-danger'>Request failed: " + e + "</span>";
-          }
+
+            // 2. ASK BUTTON - FIXED TO CALL BACKEND
+            const askBtn = document.getElementById('askBtn');
+            if (askBtn) {
+                askBtn.addEventListener('click', async function() {
+                    console.log('Ask button clicked');
+                    const questionInput = document.getElementById('q');
+                    const question = questionInput.value.trim();
+
+                    if (!question) {
+                        alert('Please enter a question');
+                        return;
+                    }
+
+                    // Show loading
+                    document.getElementById('aiMd').innerHTML = '<div class="text-center"><i class="fas fa-circle-notch fa-spin"></i><p>AI is thinking...</p></div>';
+
+                    // Add to conversation
+                    addConversationMessage('user', question);
+
+                    try {
+                        // Call the backend Ask method
+                        const response = await fetch('/Patients/Ask', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `id=@p.Id&question=${encodeURIComponent(question)}`
+                        });
+
+                        const result = await response.json();
+
+                        if (result.ok) {
+                            document.getElementById('aiMd').innerHTML = result.answer;
+                            addToHistory(question, result.answer, false);
+                        } else {
+                            throw new Error(result.error || 'Unknown error occurred');
+                        }
+                    } catch (error) {
+                        console.error('Error calling AI:', error);
+                        // Fallback to mock response
+                        const mockResponse = `
+                            <h3>AI Response to: "${question}"</h3>
+                            <p>Based on patient @p.FullName's data:</p>
+                            <ul>
+                                <li><strong>Conditions:</strong> @p.Conditions.Count active</li>
+                                <li><strong>Medications:</strong> @p.Medications.Count prescribed</li>
+                                <li><strong>Observations:</strong> @p.Observations.Count recorded</li>
+                            </ul>
+                            <p><em>Note: Backend service unavailable. This is a mock response.</em></p>
+                        `;
+                        document.getElementById('aiMd').innerHTML = mockResponse;
+                        addToHistory(question, mockResponse, false);
+                    }
+
+                    questionInput.value = '';
+                });
+            }
+
+            // 3. GET AI SUGGESTIONS - FIXED TO CALL BACKEND
+            const getAiSuggestionsBtn = document.getElementById('getAiSuggestions');
+            if (getAiSuggestionsBtn) {
+                getAiSuggestionsBtn.addEventListener('click', async function() {
+                    console.log('Get AI Suggestions clicked');
+
+                    document.getElementById('aiMd').innerHTML = '<div class="text-center"><i class="fas fa-circle-notch fa-spin"></i><p>Getting AI suggestions...</p></div>';
+
+                    // Create conversation summary for AI
+                    const conversationText = getConversationText();
+                    const question = `Based on the following doctor-patient conversation, provide clinical insights and suggestions:\n\n${conversationText}`;
+
+                    try {
+                        const response = await fetch('/Patients/Ask', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `id=@p.Id&question=${encodeURIComponent(question)}`
+                        });
+
+                        const result = await response.json();
+
+                        if (result.ok) {
+                            document.getElementById('aiMd').innerHTML = result.answer;
+                            addToHistory('Get AI Suggestions', result.answer, true);
+                        } else {
+                            throw new Error(result.error || 'Unknown error occurred');
+                        }
+                    } catch (error) {
+                        console.error('Error calling AI:', error);
+                        // Fallback to mock response
+                        const mockResponse = `
+                            <h3>AI Suggestions Based on Conversation</h3>
+                            <p>Based on the current doctor-patient dialogue:</p>
+                            <ul>
+                                <li>Review medication adherence for @p.FullName</li>
+                                <li>Check recent observations for trends</li>
+                                <li>Consider scheduling follow-up tests</li>
+                                <li>Assess response to current treatment plan</li>
+                            </ul>
+                            <p><em>Note: Backend service unavailable. These are mock suggestions.</em></p>
+                        `;
+                        document.getElementById('aiMd').innerHTML = mockResponse;
+                        addToHistory('Get AI Suggestions', mockResponse, true);
+                    }
+                });
+            }
+
+            // 4. VIEW DIAGNOSTIC - WORKING
+            const viewDiagnosticBtn = document.getElementById('viewDiagnosticBtn');
+            const modalOverlay = document.getElementById('cura-modal-overlay');
+            const modalClose = document.getElementById('cura-modal-close');
+
+            if (viewDiagnosticBtn && modalOverlay) {
+                viewDiagnosticBtn.addEventListener('click', function() {
+                    console.log('View Diagnostic clicked');
+                    modalOverlay.classList.add('show');
+                });
+            }
+
+            if (modalClose && modalOverlay) {
+                modalClose.addEventListener('click', function() {
+                    modalOverlay.classList.remove('show');
+                });
+
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === modalOverlay) {
+                        modalOverlay.classList.remove('show');
+                    }
+                });
+            }
+
+            // 5. RECORDING BUTTONS - WORKING
+            const toggleRecordingBtn = document.getElementById('toggleRecording');
+            const pauseRecordingBtn = document.getElementById('pauseRecording');
+            const clearConversationBtn = document.getElementById('clearConversation');
+            const recordingIndicator = document.getElementById('recordingIndicator');
+            const recordingStatus = document.getElementById('recordingStatus');
+
+            let isRecording = false;
+
+            if (toggleRecordingBtn) {
+                toggleRecordingBtn.addEventListener('click', function() {
+                    isRecording = !isRecording;
+
+                    if (isRecording) {
+                        toggleRecordingBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                        toggleRecordingBtn.classList.remove('btn-action');
+                        toggleRecordingBtn.classList.add('btn-warning');
+                        recordingIndicator.style.display = 'flex';
+                        recordingStatus.textContent = '(Recording Active)';
+                        addConversationMessage('system', 'Recording started. AI is now analyzing the conversation.');
+                    } else {
+                        toggleRecordingBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
+                        toggleRecordingBtn.classList.remove('btn-warning');
+                        toggleRecordingBtn.classList.add('btn-action');
+                        recordingIndicator.style.display = 'none';
+                        recordingStatus.textContent = '(AI Listening Active)';
+                        addConversationMessage('system', 'Recording stopped.');
+                    }
+                });
+            }
+
+            if (pauseRecordingBtn) {
+                pauseRecordingBtn.addEventListener('click', function() {
+                    if (isRecording) {
+                        isRecording = false;
+                        toggleRecordingBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
+                        toggleRecordingBtn.classList.remove('btn-warning');
+                        toggleRecordingBtn.classList.add('btn-action');
+                        recordingIndicator.style.display = 'none';
+                        recordingStatus.textContent = '(AI Listening Paused)';
+                        addConversationMessage('system', 'Recording paused.');
+                    }
+                });
+            }
+
+            if (clearConversationBtn) {
+                clearConversationBtn.addEventListener('click', function() {
+                    if (confirm('Clear conversation?')) {
+                        document.getElementById('conversationBody').innerHTML = '';
+                        initializeConversation();
+                    }
+                });
+            }
+        });
+
+        // BASIC FUNCTIONS
+        function initializeConversation() {
+            addConversationMessage('doctor', 'Good morning. How have you been feeling since your last visit?');
+            addConversationMessage('patient', 'I\'ve been managing, but still experiencing some symptoms.');
+            addConversationMessage('doctor', 'Let me review your recent observations and see how we can help.');
+        }
+
+        function addConversationMessage(sender, text) {
+            const conversationBody = document.getElementById('conversationBody');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message';
+
+            let avatarClass = '';
+            let contentClass = '';
+            let icon = '';
+
+            switch(sender) {
+                case 'doctor':
+                    avatarClass = 'message-avatar message-avatar-doctor';
+                    contentClass = 'message-content message-doctor';
+                    icon = 'fas fa-user-md';
+                    break;
+                case 'patient':
+                    avatarClass = 'message-avatar message-avatar-patient';
+                    contentClass = 'message-content message-patient';
+                    icon = 'fas fa-user';
+                    break;
+                case 'user':
+                    avatarClass = 'message-avatar message-avatar-user';
+                    contentClass = 'message-content message-user';
+                    icon = 'fas fa-user';
+                    break;
+                case 'system':
+                    avatarClass = 'message-avatar message-avatar-ai';
+                    contentClass = 'message-content message-ai';
+                    icon = 'fas fa-info-circle';
+                    break;
+            }
+
+            const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            messageEl.innerHTML = `
+                <div class="${avatarClass}">
+                    <i class="${icon}"></i>
+                </div>
+                <div class="${contentClass}">
+                    <div>${text}</div>
+                    <div class="message-meta">${timeString}</div>
+                </div>
+            `;
+
+            conversationBody.appendChild(messageEl);
+            conversationBody.scrollTop = conversationBody.scrollHeight;
+        }
+
+        function addToHistory(question, answer, isSuggestion) {
+            const conversationHistory = document.getElementById('conversationHistory');
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+
+            const questionText = isSuggestion ? 'AI Suggestion' : question;
+            const answerPreview = answer.replace(/<[^>]*>/g, '').substring(0, 80) + '...';
+
+            historyItem.innerHTML = `
+                <div class="history-question">${questionText}</div>
+                <div class="history-answer">${answerPreview}</div>
+            `;
+
+            historyItem.addEventListener('click', () => {
+                document.getElementById('aiMd').innerHTML = answer;
+            });
+
+            conversationHistory.insertBefore(historyItem, conversationHistory.firstChild);
+        }
+
+        function prefill(text) {
+            document.getElementById('q').value = text;
+        }
+
+        // Helper function to get conversation text for AI suggestions
+        function getConversationText() {
+            const messages = Array.from(document.querySelectorAll('#conversationBody .message'));
+            return messages.map(msg => {
+                let sender = 'Unknown';
+                if (msg.querySelector('.message-avatar-doctor')) sender = 'Doctor';
+                else if (msg.querySelector('.message-avatar-patient')) sender = 'Patient';
+                else if (msg.querySelector('.message-avatar-user')) sender = 'User';
+                else if (msg.querySelector('.message-avatar-ai')) sender = 'AI';
+
+                const text = msg.querySelector('.message-content div').textContent;
+                return `${sender}: ${text}`;
+            }).join('\n');
+        }
+
+        // ADD THIS RECORDING FIX ON TOP OF EXISTING CODE
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Recording fix loaded');
+
+            // Get recording elements
+            const toggleRecordingBtn = document.getElementById('toggleRecording');
+            const pauseRecordingBtn = document.getElementById('pauseRecording');
+            const recordingIndicator = document.getElementById('recordingIndicator');
+            const recordingStatus = document.getElementById('recordingStatus');
+
+            if (!toggleRecordingBtn) {
+                console.error('Toggle recording button not found');
+                return;
+            }
+
+            let isRecording = false;
+            let pulseInterval = null;
+
+            // Simple pulse animation without keyframes
+            function startPulseAnimation() {
+                if (pulseInterval) clearInterval(pulseInterval);
+
+                const recordingDot = document.querySelector('.recording-dot');
+                if (!recordingDot) {
+                    console.error('Recording dot not found');
+                    return;
+                }
+
+                let isBright = true;
+                pulseInterval = setInterval(() => {
+                    if (isBright) {
+                        recordingDot.style.opacity = '0.5';
+                        recordingDot.style.transform = 'scale(0.8)';
+                    } else {
+                        recordingDot.style.opacity = '1';
+                        recordingDot.style.transform = 'scale(1)';
+                    }
+                    isBright = !isBright;
+                }, 500);
+            }
+
+            function stopPulseAnimation() {
+                if (pulseInterval) {
+                    clearInterval(pulseInterval);
+                    pulseInterval = null;
+                }
+
+                const recordingDot = document.querySelector('.recording-dot');
+                if (recordingDot) {
+                    recordingDot.style.opacity = '1';
+                    recordingDot.style.transform = 'scale(1)';
+                }
+            }
+
+            // Toggle recording function
+            function toggleRecording() {
+                isRecording = !isRecording;
+
+                if (isRecording) {
+                    // Start recording
+                    console.log('Recording started');
+                    toggleRecordingBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                    toggleRecordingBtn.classList.remove('btn-action');
+                    toggleRecordingBtn.classList.add('btn-warning');
+
+                    if (recordingIndicator) {
+                        recordingIndicator.style.display = 'flex';
+                    }
+                    if (recordingStatus) {
+                        recordingStatus.textContent = '(Recording Active)';
+                        recordingStatus.style.color = '#C62828';
+                    }
+
+                    startPulseAnimation();
+                    addConversationMessage('system', 'Recording started. AI is now analyzing the conversation.');
+                } else {
+                    // Stop recording
+                    console.log('Recording stopped');
+                    toggleRecordingBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
+                    toggleRecordingBtn.classList.remove('btn-warning');
+                    toggleRecordingBtn.classList.add('btn-action');
+
+                    if (recordingIndicator) {
+                        recordingIndicator.style.display = 'none';
+                    }
+                    if (recordingStatus) {
+                        recordingStatus.textContent = '(AI Listening Active)';
+                        recordingStatus.style.color = '';
+                    }
+
+                    stopPulseAnimation();
+                    addConversationMessage('system', 'Recording stopped.');
+                }
+            }
+
+            // Pause recording function
+            function pauseRecording() {
+                if (isRecording) {
+                    isRecording = false;
+                    console.log('Recording paused');
+                    toggleRecordingBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
+                    toggleRecordingBtn.classList.remove('btn-warning');
+                    toggleRecordingBtn.classList.add('btn-action');
+
+                    if (recordingIndicator) {
+                        recordingIndicator.style.display = 'none';
+                    }
+                    if (recordingStatus) {
+                        recordingStatus.textContent = '(AI Listening Paused)';
+                        recordingStatus.style.color = '#FF9800';
+                    }
+
+                    stopPulseAnimation();
+                    addConversationMessage('system', 'Recording paused.');
+                }
+            }
+
+            // Add event listeners
+            toggleRecordingBtn.addEventListener('click', toggleRecording);
+
+            if (pauseRecordingBtn) {
+                pauseRecordingBtn.addEventListener('click', pauseRecording);
+            }
+
+            console.log('Recording logic initialized');
         });
     </script>
-}
+</body>
+</html>

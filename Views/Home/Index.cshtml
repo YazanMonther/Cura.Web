@@ -1,8 +1,460 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Cura AI Clinical Assistant";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --cura-blue: #1E88E5;
+            --cura-blue-600: #1976D2;
+            --cura-blue-700: #1565C0;
+            --cura-light-blue: #E3F2FD;
+            --cura-ink: #0F172A;
+            --cura-muted: #6B7280;
+            --surface: #FFFFFF;
+            --surface-2: #F8FAFC;
+            --border: #E5E7EB;
+            --shadow: 0 10px 24px rgba(30, 136, 229, .15);
+            --ai-assistant: #7E57C2;
+            --human-assistant: #43A047;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--cura-light-blue) 0%, #fff 60%);
+            color: var(--cura-ink);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .cura-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cura-navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cura-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: radial-gradient(60% 80% at 30% 20%, #64B5F6 0%, #1E88E5 60%, #1565C0 100%);
+            box-shadow: 0 6px 12px rgba(30, 136, 229, .35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .brand {
+            font-weight: 800;
+            letter-spacing: .3px;
+            color: var(--cura-blue-700);
+            font-size: 1.6rem;
+            margin-left: 12px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--cura-ink);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+            .nav-link:hover {
+                background: var(--cura-light-blue);
+                color: var(--cura-blue-700);
+            }
+
+        .btn-cura {
+            background: linear-gradient(135deg, var(--cura-blue), var(--cura-blue-700));
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            box-shadow: 0 8px 16px rgba(30, 136, 229, .25);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+            .btn-cura:hover {
+                filter: brightness(.95);
+                transform: translateY(-2px);
+                box-shadow: 0 12px 20px rgba(30, 136, 229, .3);
+            }
+
+        .hero-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hero-text {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .hero-visual {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--cura-blue-700), var(--ai-assistant));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--cura-muted);
+            margin-bottom: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+            .feature-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 40px rgba(30, 136, 229, .2);
+            }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--cura-light-blue), #E8F4FE);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: var(--cura-blue);
+            font-size: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--cura-ink);
+        }
+
+        .feature-desc {
+            color: var(--cura-muted);
+            font-size: 0.95rem;
+        }
+
+        .ai-visual {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #E3F2FD, #F3E5F5);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(30, 136, 229, .2);
+        }
+
+        .pulse-ring {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--cura-blue);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .ai-core {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--cura-blue), var(--ai-assistant));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            z-index: 2;
+        }
+
+   
+
+        .stats-section {
+            background: var(--surface);
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .stats-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--cura-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--cura-muted);
+            font-weight: 600;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--cura-blue-700), var(--ai-assistant));
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .cta-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .btn-light {
+            background: white;
+            color: var(--cura-blue-700);
+            border: none;
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+            .btn-light:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+            }
+
+
+    </style>
+</head>
+<body>
+    <div class="cura-hero">
+        <!-- Navigation -->
+        <nav class="cura-navbar">
+            <div class="nav-content">
+                <div style="display: flex; align-items: center;">
+                    <div class="cura-badge">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
+                    <div class="brand">Cura</div>
+                </div>
+                <div class="nav-links">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="@Url.Action("Index", "Patients")" class="btn-cura">
+                        <i class="fas fa-rocket"></i> Launch App
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Hero Section -->
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    AI-Powered Clinical Assistant for Modern Healthcare
+                </h1>
+                <p class="hero-subtitle">
+                    Cura combines advanced artificial intelligence with clinical expertise to enhance patient care, streamline workflows, and provide real-time decision support for healthcare professionals.
+                </p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="feature-title">AI Co-pilot</h3>
+                        <p class="feature-desc">Real-time clinical suggestions and decision support during patient consultations</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="feature-title">Smart Transcription</h3>
+                        <p class="feature-desc">Automated conversation analysis with clinical insights extraction</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="feature-title">Predictive Analytics</h3>
+                        <p class="feature-desc">Identify patterns and trends in patient data for proactive care</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <a href="@Url.Action("Index", "Patients")" class="btn-cura">
+                        <i class="fas fa-play"></i> Get Started
+                    </a>
+                    <a href="#demo" class="btn-light">
+                        <i class="fas fa-video"></i> Watch Demo
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="ai-visual">
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring" style="animation-delay: 0.5s"></div>
+                    <div class="pulse-ring" style="animation-delay: 1s"></div>
+                    <div class="ai-core">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">99.2%</div>
+                <div class="stat-label">Clinical Accuracy</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">40%</div>
+                <div class="stat-label">Time Saved</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5,000+</div>
+                <div class="stat-label">Patients Served</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">AI Support</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2 class="cta-title">Ready to Transform Patient Care?</h2>
+            <p class="cta-subtitle">
+                Join healthcare professionals worldwide who are using Cura to enhance clinical decision-making and improve patient outcomes.
+            </p>
+            <a href="@Url.Action("Index", "Patients")" class="btn-light">
+                <i class="fas fa-stethoscope"></i> Start Using Cura Today
+            </a>
+        </div>
+    </section>
+
+    <script>
+        // Simple animation for feature cards on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const featureCards = document.querySelectorAll('.feature-card');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            featureCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
