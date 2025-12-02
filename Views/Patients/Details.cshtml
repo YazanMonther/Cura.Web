@@ -1041,6 +1041,26 @@
                         </div>
 
                         <div class="conversation-footer">
+                            <div class="conversation-footer">
+                                <div style="display:flex;align-items:center;gap:8px;margin-right:auto;">
+                                    <span class="muted" style="font-size:0.85rem;">Current speaker</span>
+                                    <select id="speakerSelect" class="dropdown-select" style="width:auto;padding:4px 8px;">
+                                        <option value="doctor">Doctor</option>
+                                        <option value="patient">Patient</option>
+                                    </select>
+                                </div>
+
+                                <button class="btn-ghost" id="pauseRecording">
+                                    <i class="fas fa-pause"></i> Pause Listening
+                                </button>
+                                <button class="btn-warning" id="clearConversation">
+                                    <i class="fas fa-trash"></i> Clear Conversation
+                                </button>
+                                <button class="btn-suggestion" id="getAiSuggestions">
+                                    <i class="fas fa-bolt"></i> Get AI Suggestions
+                                </button>
+                            </div>
+
                             <button class="btn-ghost" id="pauseRecording">
                                 <i class="fas fa-pause"></i> Pause Listening
                             </button>
@@ -1485,132 +1505,174 @@
             }).join('\n');
         }
 
-        // ADD THIS RECORDING FIX ON TOP OF EXISTING CODE
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Recording fix loaded');
 
-            // Get recording elements
+        // REAL recording + transcript: uses Web Speech API (Chrome / Edge)
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Voice recording init');
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.warn('Web Speech API not supported – voice recording disabled.');
+                // You could show a small warning in the UI if needed.
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
             const toggleRecordingBtn = document.getElementById('toggleRecording');
             const pauseRecordingBtn = document.getElementById('pauseRecording');
             const recordingIndicator = document.getElementById('recordingIndicator');
             const recordingStatus = document.getElementById('recordingStatus');
-
-            if (!toggleRecordingBtn) {
-                console.error('Toggle recording button not found');
-                return;
-            }
+            const speakerSelect = document.getElementById('speakerSelect');
 
             let isRecording = false;
-            let pulseInterval = null;
 
-            // Simple pulse animation without keyframes
+            // Simple pulse animation for the red dot
+            let pulseInterval = null;
             function startPulseAnimation() {
+                const recordingDot = document.querySelector('.recording-dot');
+                if (!recordingDot) return;
+
                 if (pulseInterval) clearInterval(pulseInterval);
 
-                const recordingDot = document.querySelector('.recording-dot');
-                if (!recordingDot) {
-                    console.error('Recording dot not found');
-                    return;
-                }
-
-                let isBright = true;
+                let bright = true;
                 pulseInterval = setInterval(() => {
-                    if (isBright) {
+                    if (bright) {
                         recordingDot.style.opacity = '0.5';
                         recordingDot.style.transform = 'scale(0.8)';
                     } else {
                         recordingDot.style.opacity = '1';
                         recordingDot.style.transform = 'scale(1)';
                     }
-                    isBright = !isBright;
+                    bright = !bright;
                 }, 500);
             }
 
             function stopPulseAnimation() {
-                if (pulseInterval) {
-                    clearInterval(pulseInterval);
-                    pulseInterval = null;
-                }
-
                 const recordingDot = document.querySelector('.recording-dot');
+                if (pulseInterval) clearInterval(pulseInterval);
+                pulseInterval = null;
                 if (recordingDot) {
                     recordingDot.style.opacity = '1';
                     recordingDot.style.transform = 'scale(1)';
                 }
             }
 
-            // Toggle recording function
-            function toggleRecording() {
-                isRecording = !isRecording;
+            // When speech is recognized, add it as a message
+            recognition.onresult = function (event) {
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    if (!result.isFinal) continue;
 
+                    const text = result[0].transcript.trim();
+                    if (!text) continue;
+
+                    const speaker = speakerSelect ? speakerSelect.value : 'doctor';
+                    console.log('Recognized (', speaker, '):', text);
+                    addConversationMessage(speaker, text);
+                }
+            };
+
+            recognition.onerror = function (event) {
+                console.error('Speech recognition error:', event);
+            };
+
+            // Auto-restart while isRecording is true (for long conversations)
+            recognition.onend = function () {
                 if (isRecording) {
-                    // Start recording
-                    console.log('Recording started');
+                    console.log('Recognition ended, restarting...');
+                    try {
+                        recognition.start();
+                    } catch { }
+                }
+            };
+
+            function updateUiRecordingStarted() {
+                if (toggleRecordingBtn) {
                     toggleRecordingBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
                     toggleRecordingBtn.classList.remove('btn-action');
                     toggleRecordingBtn.classList.add('btn-warning');
+                }
+                if (recordingIndicator) {
+                    recordingIndicator.style.display = 'flex';
+                }
+                if (recordingStatus) {
+                    recordingStatus.textContent = '(Recording Active)';
+                    recordingStatus.style.color = '#C62828';
+                }
+                startPulseAnimation();
+                addConversationMessage('system', 'Recording started. AI is now analyzing the conversation.');
+            }
 
-                    if (recordingIndicator) {
-                        recordingIndicator.style.display = 'flex';
-                    }
-                    if (recordingStatus) {
-                        recordingStatus.textContent = '(Recording Active)';
-                        recordingStatus.style.color = '#C62828';
-                    }
+            function updateUiRecordingStopped(statusText, color) {
+                if (toggleRecordingBtn) {
+                    toggleRecordingBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
+                    toggleRecordingBtn.classList.remove('btn-warning');
+                    toggleRecordingBtn.classList.add('btn-action');
+                }
+                if (recordingIndicator) {
+                    recordingIndicator.style.display = 'none';
+                }
+                if (recordingStatus) {
+                    recordingStatus.textContent = statusText;
+                    recordingStatus.style.color = color || '';
+                }
+                stopPulseAnimation();
+            }
 
-                    startPulseAnimation();
-                    addConversationMessage('system', 'Recording started. AI is now analyzing the conversation.');
-                } else {
-                    // Stop recording
+            function startRecording() {
+                if (isRecording) return;
+                isRecording = true;
+                try {
+                    recognition.start();
+                    console.log('Recording started');
+                    updateUiRecordingStarted();
+                } catch (e) {
+                    console.error('Error starting recognition:', e);
+                }
+            }
+
+            function stopRecording(statusText, color) {
+                if (!isRecording) return;
+                isRecording = false;
+                try {
+                    recognition.stop();
                     console.log('Recording stopped');
-                    toggleRecordingBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
-                    toggleRecordingBtn.classList.remove('btn-warning');
-                    toggleRecordingBtn.classList.add('btn-action');
-
-                    if (recordingIndicator) {
-                        recordingIndicator.style.display = 'none';
-                    }
-                    if (recordingStatus) {
-                        recordingStatus.textContent = '(AI Listening Active)';
-                        recordingStatus.style.color = '';
-                    }
-
-                    stopPulseAnimation();
-                    addConversationMessage('system', 'Recording stopped.');
+                } catch (e) {
+                    console.error('Error stopping recognition:', e);
                 }
+                updateUiRecordingStopped(statusText, color);
             }
 
-            // Pause recording function
-            function pauseRecording() {
-                if (isRecording) {
-                    isRecording = false;
-                    console.log('Recording paused');
-                    toggleRecordingBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
-                    toggleRecordingBtn.classList.remove('btn-warning');
-                    toggleRecordingBtn.classList.add('btn-action');
-
-                    if (recordingIndicator) {
-                        recordingIndicator.style.display = 'none';
+            // Toggle button (start/stop)
+            if (toggleRecordingBtn) {
+                toggleRecordingBtn.addEventListener('click', function () {
+                    // Note: getUserMedia / Web Speech require HTTPS or localhost
+                    if (!isRecording) {
+                        startRecording();
+                    } else {
+                        stopRecording('(AI Listening Active)');
+                        addConversationMessage('system', 'Recording stopped.');
                     }
-                    if (recordingStatus) {
-                        recordingStatus.textContent = '(AI Listening Paused)';
-                        recordingStatus.style.color = '#FF9800';
-                    }
-
-                    stopPulseAnimation();
-                    addConversationMessage('system', 'Recording paused.');
-                }
+                });
             }
 
-            // Add event listeners
-            toggleRecordingBtn.addEventListener('click', toggleRecording);
-
+            // Pause button
             if (pauseRecordingBtn) {
-                pauseRecordingBtn.addEventListener('click', pauseRecording);
+                pauseRecordingBtn.addEventListener('click', function () {
+                    if (isRecording) {
+                        stopRecording('(AI Listening Paused)', '#FF9800');
+                        addConversationMessage('system', 'Recording paused.');
+                    }
+                });
             }
 
-            console.log('Recording logic initialized');
+            console.log('Voice recording logic initialized');
         });
     </script>
+
 </body>
 </html>

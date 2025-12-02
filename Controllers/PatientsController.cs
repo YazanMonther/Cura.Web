@@ -2,7 +2,6 @@
 using Cura.Web.Models;
 using Cura.Web.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace Cura.Web.Controllers
 {
@@ -55,62 +54,5 @@ namespace Cura.Web.Controllers
                 return Json(new { ok = false, error = ex.Message });
             }
         }
-
-        // NEW: Process recorded conversation
-        [HttpPost]
-        public async Task<IActionResult> ProcessConversation(string id, [FromBody] ConversationData conversation)
-        {
-            var p = _repo.Get(id);
-            if (p is null) return NotFound();
-
-            try
-            {
-                // Convert conversation to transcript
-                var transcript = ConvertConversationToTranscript(conversation);
-
-                // Send to AI for analysis
-                var analysis = await _ai.AnalyzeConversationAsync(p, transcript);
-
-                return Json(new
-                {
-                    ok = true,
-                    analysis,
-                    transcript
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { ok = false, error = ex.Message });
-            }
-        }
-
-        private string ConvertConversationToTranscript(ConversationData conversation)
-        {
-            var transcript = $"CONVERSATION TRANSCRIPT - Patient: {conversation.PatientName}\n";
-            transcript += $"Date: {DateTime.Now:yyyy-MM-dd HH:mm}\n\n";
-
-            foreach (var message in conversation.Messages)
-            {
-                var speaker = message.SpeakerType == "doctor" ? "DOCTOR" : "PATIENT";
-                transcript += $"{speaker}: {message.Text}\n";
-                transcript += $"Time: {message.Timestamp}\n\n";
-            }
-
-            return transcript;
-        }
-    }
-
-    // NEW: Conversation data model
-    public class ConversationData
-    {
-        public string PatientName { get; set; } = string.Empty;
-        public List<ConversationMessage> Messages { get; set; } = new();
-    }
-
-    public class ConversationMessage
-    {
-        public string SpeakerType { get; set; } = string.Empty; // "doctor" or "patient"
-        public string Text { get; set; } = string.Empty;
-        public string Timestamp { get; set; } = string.Empty;
     }
 }
